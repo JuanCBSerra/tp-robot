@@ -124,8 +124,7 @@ private fun SimulationContent(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            "Esto no es parte de la HMI del operador: sirve para demostrar los escenarios de la consigna. " +
-                "Cargar un escenario reinicia el robot simulado en el galpón.",
+            "Cargar un escenario reinicia el robot simulado en el galpón.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
