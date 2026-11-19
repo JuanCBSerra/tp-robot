@@ -16,12 +16,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PanTool
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -209,4 +211,27 @@ fun CommandRecordRow(record: CommandRecord, modifier: Modifier = Modifier) {
         Spacer(Modifier.width(8.dp))
         StatusChip(record.status.label, tone, icon = UiFormat.commandStatusIcon(record.status))
     }
+}
+
+
+/**
+ * Diálogo de confirmación para órdenes que cambian lo que hace el robot
+ * (cancelar misión, volver al galpón). Evita toques accidentales (prevención de errores).
+ */
+@Composable
+fun ConfirmCommandDialog(
+    title: String,
+    text: String,
+    confirmLabel: String,
+    dismissLabel: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = { Text(text) },
+        confirmButton = { TextButton(onClick = onConfirm) { Text(confirmLabel) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(dismissLabel) } }
+    )
 }

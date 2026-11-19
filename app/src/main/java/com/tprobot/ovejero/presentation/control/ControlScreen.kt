@@ -49,6 +49,7 @@ import com.tprobot.ovejero.domain.model.OperationRules
 import com.tprobot.ovejero.presentation.common.UiFormat
 import com.tprobot.ovejero.presentation.common.components.CommandButton
 import com.tprobot.ovejero.presentation.common.components.CommandRecordRow
+import com.tprobot.ovejero.presentation.common.components.ConfirmCommandDialog
 import com.tprobot.ovejero.presentation.common.components.EmptyStateView
 import com.tprobot.ovejero.presentation.common.components.ErrorStateView
 import com.tprobot.ovejero.presentation.common.components.HoldToConfirmButton
@@ -63,6 +64,7 @@ fun ControlScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var confirmCancel by rememberSaveable { mutableStateOf(false) }
+    var confirmReturn by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.effectFlow.collectLatest { effect ->
@@ -88,6 +90,20 @@ fun ControlScreen(
         )
     }
 
+    if (confirmReturn) {
+        ConfirmCommandDialog(
+            title = "¿Volver al galpón?",
+            text = "El robot interrumpe lo que está haciendo y vuelve al punto seguro. Si hay una misión en curso, se corta.",
+            confirmLabel = "Sí, volver",
+            dismissLabel = "Quedarme",
+            onConfirm = {
+                confirmReturn = false
+                viewModel.returnToBase()
+            },
+            onDismiss = { confirmReturn = false }
+        )
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
@@ -104,7 +120,7 @@ fun ControlScreen(
                 onPause = viewModel::pause,
                 onResume = viewModel::resume,
                 onCancel = { confirmCancel = true },
-                onReturn = viewModel::returnToBase,
+                onReturn = { confirmReturn = true },
                 onStop = viewModel::operationalStop,
                 onAcknowledge = viewModel::acknowledge,
                 modifier = Modifier.padding(innerPadding)

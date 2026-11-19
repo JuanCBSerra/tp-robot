@@ -43,7 +43,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -62,6 +65,7 @@ import com.tprobot.ovejero.domain.model.Telemetry
 import com.tprobot.ovejero.presentation.common.UiFormat
 import com.tprobot.ovejero.presentation.common.components.CommandButton
 import com.tprobot.ovejero.presentation.common.components.CommandRecordRow
+import com.tprobot.ovejero.presentation.common.components.ConfirmCommandDialog
 import com.tprobot.ovejero.presentation.common.components.EmptyStateView
 import com.tprobot.ovejero.presentation.common.components.ErrorStateView
 import com.tprobot.ovejero.presentation.common.components.FieldMapView
@@ -84,6 +88,8 @@ fun SupervisionScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    var confirmReturn by rememberSaveable { mutableStateOf(false) }
+    var confirmCancel by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.effectFlow.collectLatest { effect ->
@@ -92,6 +98,33 @@ fun SupervisionScreen(
                     snackbarHostState.showSnackbar(effect.message, duration = SnackbarDuration.Short)
             }
         }
+    }
+
+    if (confirmReturn) {
+        ConfirmCommandDialog(
+            title = "¿Volver al galpón?",
+            text = "El robot interrumpe lo que está haciendo y vuelve al punto seguro. Si hay una misión en curso, se corta.",
+            confirmLabel = "Sí, volver",
+            dismissLabel = "Quedarme",
+            onConfirm = {
+                confirmReturn = false
+                viewModel.returnToBase()
+            },
+            onDismiss = { confirmReturn = false }
+        )
+    }
+    if (confirmCancel) {
+        ConfirmCommandDialog(
+            title = "¿Cancelar la misión?",
+            text = "El robot deja la recorrida y vuelve al galpón. Los animales que estaba arreando quedan donde estén.",
+            confirmLabel = "Sí, cancelar",
+            dismissLabel = "Seguir con la misión",
+            onConfirm = {
+                confirmCancel = false
+                viewModel.cancel()
+            },
+            onDismiss = { confirmCancel = false }
+        )
     }
 
     Scaffold(
@@ -107,8 +140,8 @@ fun SupervisionScreen(
                 data = state.data,
                 onPause = viewModel::pause,
                 onResume = viewModel::resume,
-                onCancel = viewModel::cancel,
-                onReturn = viewModel::returnToBase,
+                onCancel = { confirmCancel = true },
+                onReturn = { confirmReturn = true },
                 onStop = viewModel::operationalStop,
                 onAcknowledge = viewModel::acknowledge,
                 onGoToControl = onGoToControl,
