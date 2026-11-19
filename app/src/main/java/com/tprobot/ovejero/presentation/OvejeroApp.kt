@@ -133,7 +133,11 @@ fun OvejeroApp(
                         Column {
                             Text(status.robot?.name ?: "El Ovejero")
                             Text(
-                                status.connection.label + (status.robot?.let { " · ${it.model}" } ?: ""),
+                                status.connection.label +
+                                    batterySuffix(status) +
+                                    (status.robot?.let { " · ${it.model}" } ?: ""),
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color.White.copy(alpha = 0.85f)
                             )
@@ -215,6 +219,17 @@ fun OvejeroApp(
                 }
             }
         }
+    }
+}
+
+/** Batería siempre visible en la barra superior; si no hay señal, se marca como dato viejo. */
+private fun batterySuffix(status: com.tprobot.ovejero.domain.model.RobotStatus): String {
+    val battery = status.telemetry?.batteryPercent ?: return ""
+    val low = battery <= com.tprobot.ovejero.domain.model.OperationRules.LOW_BATTERY_WARNING
+    return " · 🔋 $battery %" + when {
+        status.isStale -> " (dato viejo)"
+        low -> " ⚠️"
+        else -> ""
     }
 }
 
