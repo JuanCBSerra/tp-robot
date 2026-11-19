@@ -124,7 +124,8 @@ private fun SimulationContent(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            "Cargar un escenario reinicia el robot simulado en el galpón.",
+            "Elegí un escenario para ver cómo responde la app ante cada situación. " +
+                "Al cargarlo, el robot simulado vuelve al galpón y arranca de cero.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
