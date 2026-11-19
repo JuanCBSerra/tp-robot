@@ -9,6 +9,7 @@ import com.tprobot.ovejero.domain.model.MissionStatus
 import com.tprobot.ovejero.domain.model.MissionType
 import com.tprobot.ovejero.domain.model.Motion
 import com.tprobot.ovejero.domain.model.MotionMode
+import com.tprobot.ovejero.domain.model.OperationRules
 import com.tprobot.ovejero.domain.model.OperationalState
 import com.tprobot.ovejero.domain.model.Position
 import com.tprobot.ovejero.domain.model.Telemetry
@@ -44,6 +45,7 @@ object TelemetryMapper {
             inCorral = dto.service.headsInCorral
         ),
         temperatureCelsius = dto.service.temperatureC,
+        humidityPercent = dto.service.humidityPct ?: OperationRules.ASSUMED_HUMIDITY_PERCENT,
         signalPercent = dto.link?.signalPercent ?: 0
     )
 

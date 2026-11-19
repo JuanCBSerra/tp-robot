@@ -20,6 +20,8 @@ import com.tprobot.ovejero.data.remote.dto.RobotSummaryDto
 import com.tprobot.ovejero.data.remote.dto.ServiceDataDto
 import com.tprobot.ovejero.data.remote.dto.TelemetryDto
 import com.tprobot.ovejero.domain.model.FieldMap
+import com.tprobot.ovejero.domain.model.HeatStress
+import com.tprobot.ovejero.domain.model.OperationRules
 import com.tprobot.ovejero.domain.model.Scenario
 import com.tprobot.ovejero.domain.model.SimulationSettings
 import com.tprobot.ovejero.domain.model.SimulationSpeed
@@ -288,6 +290,18 @@ class RobotSimulator @Inject constructor(
         return error
     }
 
+    /** Fuerza una ola de calor (temperatura y humedad altas) para disparar el aviso sin esperar. */
+    suspend fun triggerHeat(): String? = mutex.withLock {
+        if (robot.state == RobotProtocol.State.DOCKED) {
+            "El robot está en el galpón: iniciá una misión primero"
+        } else {
+            robot.heatForced = true
+            robot.temperature = max(robot.temperature, HEAT_FORCED_MIN_TEMP_C)
+            robot.humidity = max(robot.humidity, HEAT_FORCED_MIN_HUMIDITY)
+            null
+        }
+    }
+
     suspend fun triggerPersonNearby(): String? {
         var alert: AlertDto? = null
         val error = mutex.withLock {
@@ -338,9 +352,22 @@ class RobotSimulator @Inject constructor(
         val r = robot
         r.clockSeconds += dt
 
-        // Clima: temperatura que sube y baja despacio; con tormenta refresca.
-        val targetTemp = if (r.stormFired) 23.0 else 31.0 + 3.0 * sin(r.clockSeconds / 300.0)
+        // Clima: temperatura y humedad que cambian despacio; con tormenta refresca.
+        // En el escenario "Ola de calor" (o forzada desde el panel) suben hasta valores peligrosos
+        // para la hacienda. El clima de base queda por debajo del umbral de alerta del ITH,
+        // así la misión normal no se frena.
+        val baseTemp = BASE_TEMP_C + BASE_TEMP_SWING_C * sin(r.clockSeconds / 300.0)
+        val heatRamp = when {
+            r.heatForced -> 1.0
+            _settings.value.scenario == Scenario.CALOR ->
+                (r.distanceDone / (routeMeters * HEAT_RAMP_ROUTE_FRACTION)).coerceIn(0.0, 1.0)
+            else -> 0.0
+        }
+        val targetTemp = if (r.stormFired) 23.0 else baseTemp + (HEAT_TEMP_C - baseTemp) * heatRamp
         r.temperature += (targetTemp - r.temperature) * min(1.0, dt / 30.0)
+        val targetHumidity = BASE_HUMIDITY + (HEAT_HUMIDITY - BASE_HUMIDITY) * heatRamp
+        r.humidity += (targetHumidity - r.humidity) * min(1.0, dt / 60.0)
+        out += checkHeatStress()
 
         // Señal: en el monte (Potrero 3) es peor.
         val linkDown = _settings.value.linkDown
@@ -648,6 +675,8 @@ class RobotSimulator @Inject constructor(
         r.autoReturned = false
         r.obstacleFired = false
         r.stormFired = false
+        r.heatWarned = false
+        r.heatCriticalFired = false
         r.disconnectFired = false
         r.personSlowdownSeconds = 0.0
     }
@@ -676,6 +705,47 @@ class RobotSimulator @Inject constructor(
             "Pronóstico de tormenta fuerte en 20 minutos.$detail El Go2 no es impermeable: ¿seguir o volver?",
             requiresDecision = true
         )
+    }
+
+    /**
+     * Estrés térmico de la hacienda (ITH). Avisa una vez al pasar el umbral de alerta y,
+     * si llega al de peligro con el robot en misión, lo frena y espera la decisión del operador.
+     */
+    private fun checkHeatStress(): List<AlertDto> {
+        val r = robot
+        if (r.state == RobotProtocol.State.DOCKED) return emptyList()
+        val thi = HeatStress.thi(r.temperature, r.humidity.roundToInt())
+        val detail = "ITH ${thi.roundToInt()} (${round1(r.temperature)} °C, ${r.humidity.roundToInt()} % de humedad)"
+        return when {
+            !r.heatCriticalFired && thi >= OperationRules.HEAT_THI_DANGER -> {
+                r.heatWarned = true
+                r.heatCriticalFired = true
+                val stops = r.state == RobotProtocol.State.ON_MISSION
+                if (stops) pauseForDecision()
+                listOf(
+                    raise(
+                        AlertCode.HEAT_STRESS, Severity.CRITICAL,
+                        if (stops) {
+                            "Calor peligroso para los animales: $detail. El robot se detuvo para no apurar la hacienda: ¿seguir con cuidado o volver al galpón?"
+                        } else {
+                            "Calor peligroso para los animales: $detail. Conviene no mover la hacienda hasta que baje."
+                        },
+                        requiresDecision = stops
+                    )
+                )
+            }
+            !r.heatWarned && thi >= OperationRules.HEAT_THI_WARNING -> {
+                r.heatWarned = true
+                listOf(
+                    raise(
+                        AlertCode.HEAT_STRESS, Severity.WARNING,
+                        "Empieza el estrés térmico en la hacienda: $detail. Revisá sombra y agua; el robot sigue.",
+                        requiresDecision = false
+                    )
+                )
+            }
+            else -> emptyList()
+        }
     }
 
     private fun remainingHeadsAfterCurrent(): Int =
@@ -783,7 +853,8 @@ class RobotSimulator @Inject constructor(
                 headsCounted = r.counted,
                 headsExpected = map.totalHeads,
                 headsInCorral = r.inCorral,
-                temperatureC = round1(r.temperature)
+                temperatureC = round1(r.temperature),
+                humidityPct = r.humidity.roundToInt()
             ),
             link = LinkDto(signalPercent = r.signal)
         )
@@ -828,7 +899,11 @@ class RobotSimulator @Inject constructor(
         var counted = 0
         var following = 0
         var inCorral = 0
-        var temperature = 30.0
+        var temperature = BASE_TEMP_C
+        var humidity = BASE_HUMIDITY
+        var heatWarned = false
+        var heatCriticalFired = false
+        var heatForced = false
         var signal = 90
         var personSlowdownSeconds = 0.0
         var lowWarned = false
@@ -888,5 +963,15 @@ class RobotSimulator @Inject constructor(
         private const val CRITICAL_BATTERY = 15.0
         private const val AUTO_RETURN_BATTERY = 10.0
         private const val LINK_LOSS_RETURN_SECONDS = 120.0
+
+        // Clima de base: ITH ~72-74 (< 75), no dispara alertas. Ola de calor: ITH > 84.
+        private const val BASE_TEMP_C = 25.5
+        private const val BASE_TEMP_SWING_C = 1.0
+        private const val BASE_HUMIDITY = 55.0
+        private const val HEAT_TEMP_C = 35.0
+        private const val HEAT_HUMIDITY = 65.0
+        private const val HEAT_FORCED_MIN_TEMP_C = 33.0
+        private const val HEAT_FORCED_MIN_HUMIDITY = 62.0
+        private const val HEAT_RAMP_ROUTE_FRACTION = 0.35
     }
 }

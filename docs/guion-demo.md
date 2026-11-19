@@ -46,6 +46,13 @@ Antes de cada escenario: **🧪 Panel de simulación → elegir escenario** (rei
 - Alternativa: "Seguir buscando" → termina con 42/45 y alerta *Faltan animales*.
 - 📸 Evidencia: alerta + historial con la misión abortada.
 
+## 6. Escenario extra: ola de calor (1 min)
+- Escenario "6 · Ola de calor (extra)", x10, **Arreo al corral**. Alternativa rápida: con una misión en curso, 🧪 → "Ola de calor (estrés térmico)".
+- Mostrar: primero la alerta **advertencia** "Empieza el estrés térmico…" (el robot sigue), con la celda *Temperatura* en naranja y su ITH.
+- Después la alerta **crítica** "Calor peligroso para los animales": el robot se frena y aparece la tarjeta "El robot espera tu decisión".
+- Reconocer → **Seguir con cuidado** (o Volver al galpón).
+- 📸 Evidencia: celda de temperatura en naranja y en rojo, y la tarjeta de decisión.
+
 ## Extras (si sobra tiempo)
 - 🧪 "Rechazar la próxima orden" → mandar Pausar → *rechazada* con motivo.
 - 🧪 "Persona cerca del robot" → alerta + la velocidad baja a 0,4 m/s.

@@ -47,7 +47,8 @@ Si una orden no recibe `command_ack` en **5 s**, la app la marca **sin respuesta
     "heads_counted": 27,
     "heads_expected": 45,
     "heads_in_corral": 0,
-    "temperature_c": 31.8
+    "temperature_c": 25.8,
+    "humidity_pct": 55
   },
   "link": { "signal_percent": 54 }
 }
@@ -60,7 +61,7 @@ Si una orden no recibe `command_ack` en **5 s**, la app la marca **sin respuesta
 | `mission.status` | `RUNNING`, `PAUSED`, `COMPLETED`, `CANCELLED`, `ABORTED` |
 | `mission.progress` | fracción 0.0 – 1.0 del recorrido |
 | `motion.mode` | `IDLE`, `WALKING`, `HERDING` |
-| `service.*` | variables propias del servicio: animales contados, esperados, en el corral y temperatura |
+| `service.*` | variables propias del servicio: animales contados, esperados, en el corral, temperatura y humedad (`humidity_pct`, opcional: si falta, la app asume 60 %). Con temperatura y humedad la app calcula el ITH (estrés térmico) |
 | `mission` | `null` si nunca hubo misión; si terminó, queda con su estado final hasta la próxima |
 
 ## 2. Alerta
@@ -87,6 +88,8 @@ Si una orden no recibe `command_ack` en **5 s**, la app la marca **sin respuesta
 | `OBSTACLE` | `CRITICAL` | **sí** | se detiene y espera (`AWAITING_DECISION`) |
 | `STORM` | `CRITICAL` | **sí** | se detiene y espera (`AWAITING_DECISION`) |
 | `PERSON_NEARBY` | `WARNING` | no | baja la velocidad a 0,4 m/s por 20 s |
+| `HEAT_STRESS` | `WARNING` (ITH ≥ 75) | no | avisa una sola vez por misión; el robot sigue |
+| `HEAT_STRESS` | `CRITICAL` (ITH ≥ 79) | **sí** (si estaba en misión) | se detiene y espera (`AWAITING_DECISION`); si ya volvía al galpón o estaba pausado, solo avisa |
 | `MISSING_ANIMALS` | `WARNING` | no | aviso al terminar si contó menos de lo esperado |
 
 ## 3. Orden (comando)

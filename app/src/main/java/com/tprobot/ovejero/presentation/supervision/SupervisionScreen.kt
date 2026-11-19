@@ -60,6 +60,7 @@ import com.tprobot.ovejero.domain.model.Alert
 import com.tprobot.ovejero.domain.model.AlertType
 import com.tprobot.ovejero.domain.model.CommandType
 import com.tprobot.ovejero.domain.model.FieldMap
+import com.tprobot.ovejero.domain.model.HeatStress
 import com.tprobot.ovejero.domain.model.MissionType
 import com.tprobot.ovejero.domain.model.Telemetry
 import com.tprobot.ovejero.presentation.common.UiFormat
@@ -76,6 +77,7 @@ import com.tprobot.ovejero.presentation.common.components.StatusChip
 import com.tprobot.ovejero.presentation.common.components.TelemetryTile
 import com.tprobot.ovejero.presentation.common.components.Tone
 import kotlinx.coroutines.flow.collectLatest
+import kotlin.math.roundToInt
 
 /**
  * Panel de supervisión: mapa, misión, telemetría completa (incluye las 3 variables
@@ -305,6 +307,7 @@ private fun DecisionCard(
     val resumeLabel = when (alert.type) {
         AlertType.OBSTACULO -> "Rodear y seguir"
         AlertType.TORMENTA -> "Seguir buscando"
+        AlertType.ESTRES_TERMICO -> "Seguir con cuidado"
         else -> "Reanudar"
     }
     Card(
@@ -398,6 +401,8 @@ private fun TelemetryGrid(telemetry: Telemetry, data: SupervisionData) {
     val stale = data.status.isStale
     val herd = telemetry.herd
     val isHerding = telemetry.mission?.type == MissionType.ARREO
+    val heatIndex = telemetry.heatIndex
+    val heatLevel = HeatStress.level(heatIndex)
     SectionCard(title = "Telemetría", icon = Icons.Filled.SettingsRemote) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -468,13 +473,17 @@ private fun TelemetryGrid(telemetry: Telemetry, data: SupervisionData) {
                     label = "Temperatura",
                     value = "%.1f °C".format(telemetry.temperatureCelsius),
                     icon = Icons.Filled.Thermostat,
-                    tone = when {
-                        telemetry.temperatureCelsius >= 38 -> Tone.ERROR
-                        telemetry.temperatureCelsius >= 34 -> Tone.ADVERTENCIA
-                        else -> Tone.OK
+                    tone = when (heatLevel) {
+                        HeatStress.Level.PELIGRO -> Tone.ERROR
+                        HeatStress.Level.ALERTA -> Tone.ADVERTENCIA
+                        HeatStress.Level.SIN_ESTRES -> Tone.OK
                     },
                     stale = stale,
-                    caption = if (telemetry.temperatureCelsius >= 34) "estrés térmico" else null,
+                    caption = when (heatLevel) {
+                        HeatStress.Level.PELIGRO -> "ITH ${heatIndex.roundToInt()} · peligro"
+                        HeatStress.Level.ALERTA -> "ITH ${heatIndex.roundToInt()} · estrés térmico"
+                        HeatStress.Level.SIN_ESTRES -> "ITH ${heatIndex.roundToInt()} · hum. ${telemetry.humidityPercent} %"
+                    },
                     modifier = Modifier.weight(1f)
                 )
                 TelemetryTile(

@@ -28,6 +28,10 @@ enum class Scenario(val label: String, val description: String) {
     TORMENTA(
         label = "5 · Se viene una tormenta",
         description = "En el Potrero 3 se anuncia tormenta y quedan 3 vacas en el monte sin encontrar."
+    ),
+    CALOR(
+        label = "6 · Ola de calor (extra)",
+        description = "El calor sube durante el recorrido: primero avisa (ITH 75) y después frena al robot (ITH 79) y espera tu decisión."
     )
 }
 
@@ -41,6 +45,7 @@ sealed interface SimulationAction {
     data object DrainBattery : SimulationAction
     data object TriggerObstacle : SimulationAction
     data object TriggerStorm : SimulationAction
+    data object TriggerHeat : SimulationAction
     data object TriggerPersonNearby : SimulationAction
 }
 

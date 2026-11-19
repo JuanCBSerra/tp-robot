@@ -57,7 +57,8 @@ data class ServiceDataDto(
     @Json(name = "heads_counted") val headsCounted: Int,
     @Json(name = "heads_expected") val headsExpected: Int,
     @Json(name = "heads_in_corral") val headsInCorral: Int,
-    @Json(name = "temperature_c") val temperatureC: Double
+    @Json(name = "temperature_c") val temperatureC: Double,
+    @Json(name = "humidity_pct") val humidityPct: Int? = null // opcional (contrato 1.0 no lo traía)
 )
 
 @JsonClass(generateAdapter = true)

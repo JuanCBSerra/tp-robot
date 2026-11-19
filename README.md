@@ -28,7 +28,7 @@ Mismas convenciones y versiones que el proyecto de la cátedra (PokeDex Academy)
 | Alertas | Pendientes y reconocidas, reconocer, ir a decidir |
 | Historial | Misiones y eventos guardados en Room |
 | Desconexión | Banner de "sin señal" + datos marcados como viejos; desconectar con confirmación |
-| 🧪 Simulación | Escenarios 1–5, velocidad x1/x5/x10, forzar desconexión / rechazos / batería / obstáculo / tormenta / persona cerca, últimos JSON |
+| 🧪 Simulación | Escenarios 1–6 (el 6 es una ola de calor), velocidad x1/x5/x10, forzar desconexión / rechazos / batería / obstáculo / tormenta / ola de calor / persona cerca, últimos JSON |
 
 ## Cómo compilar y correr
 

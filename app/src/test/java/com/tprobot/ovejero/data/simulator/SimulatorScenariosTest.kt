@@ -9,6 +9,7 @@ import com.tprobot.ovejero.data.local.entity.EventEntity
 import com.tprobot.ovejero.data.local.entity.MissionEntity
 import com.tprobot.ovejero.data.repository.RobotRepositoryImpl
 import com.tprobot.ovejero.data.repository.SimulationRepositoryImpl
+import com.tprobot.ovejero.domain.model.AlertSeverity
 import com.tprobot.ovejero.domain.model.AlertType
 import com.tprobot.ovejero.domain.model.CommandStatus
 import com.tprobot.ovejero.domain.model.CommandType
@@ -98,6 +99,26 @@ class SimulatorScenariosTest {
         waitUntil(3_000) {
             repository.observeRobotStatus().first().telemetry?.operationalState == OperationalState.EN_MISION
         }
+    }
+
+    @Test
+    fun `ola de calor avisa primero y despues frena al robot`() = runBlocking {
+        simulation.apply(SimulationAction.LoadScenario(Scenario.CALOR))
+        sendAndAwait(RobotCommand(CommandType.INICIAR_MISION, missionType = MissionType.RECUENTO), CommandStatus.CONFIRMADA)
+
+        waitUntil(120_000) {
+            repository.observeAlerts().first().any {
+                it.type == AlertType.ESTRES_TERMICO && it.severity == AlertSeverity.CRITICA
+            }
+        }
+        waitUntil(3_000) {
+            repository.observeRobotStatus().first().telemetry?.operationalState == OperationalState.ESPERANDO_DECISION
+        }
+        // Antes de la crítica tuvo que haber un aviso de advertencia
+        assertTrue(
+            repository.observeAlerts().first()
+                .any { it.type == AlertType.ESTRES_TERMICO && it.severity == AlertSeverity.ADVERTENCIA }
+        )
     }
 
     @Test
