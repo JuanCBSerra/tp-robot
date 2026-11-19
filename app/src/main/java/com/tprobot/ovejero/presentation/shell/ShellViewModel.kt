@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.tprobot.ovejero.core.model.Resource
 import com.tprobot.ovejero.domain.model.AlertSeverity
 import com.tprobot.ovejero.domain.model.CommandStatus
+import com.tprobot.ovejero.domain.model.MissionStatus
 import com.tprobot.ovejero.domain.model.RobotStatus
 import com.tprobot.ovejero.domain.usecase.DisconnectRobotUseCase
 import com.tprobot.ovejero.domain.usecase.ObserveAlertsUseCase
@@ -27,8 +28,8 @@ sealed interface ShellEffect {
 
 /**
  * ViewModel del "marco" de la app (barra superior, banner de conexión, barra inferior).
- * Avisa con un snackbar cuando una orden se resuelve o llega una alerta nueva,
- * esté el operador en la pestaña que esté.
+ * Avisa con un snackbar cuando una orden se resuelve, llega una alerta nueva o la misión
+ * termina, esté el operador en la pestaña que esté.
  */
 @HiltViewModel
 class ShellViewModel @Inject constructor(
@@ -49,6 +50,7 @@ class ShellViewModel @Inject constructor(
 
     private val knownCommandStatus = mutableMapOf<String, CommandStatus>()
     private val knownAlertIds = mutableSetOf<String>()
+    private val knownMissionStatus = mutableMapOf<String, MissionStatus>()
 
     init {
         observeStatus()
@@ -58,7 +60,30 @@ class ShellViewModel @Inject constructor(
 
     private fun observeStatus() {
         viewModelScope.launch {
-            observeRobotStatusUseCase().collect { _status.value = it }
+            observeRobotStatusUseCase().collect { status ->
+                _status.value = status
+                notifyMissionCompleted(status)
+            }
+        }
+    }
+
+    /**
+     * Avisa una sola vez cuando una misión pasa de en curso/pausada a completada.
+     * No avisa si la primera telemetría que vemos ya la trae completada (p. ej. al reconectar).
+     */
+    private suspend fun notifyMissionCompleted(status: RobotStatus) {
+        val telemetry = status.telemetry ?: return
+        val mission = telemetry.mission ?: return
+        val previous = knownMissionStatus.put(mission.missionId, mission.status)
+        val wasActive = previous == MissionStatus.EN_CURSO || previous == MissionStatus.PAUSADA
+        if (wasActive && mission.status == MissionStatus.COMPLETADA) {
+            val herd = telemetry.herd
+            val message = if (herd.missing > 0) {
+                "⚠️ Misión completada con faltantes: ${herd.counted} de ${herd.expected} animales contados"
+            } else {
+                "✅ Misión completada: ${herd.counted} de ${herd.expected} animales contados"
+            }
+            _effectFlow.emit(ShellEffect.ShowSnackbar(message))
         }
     }
 
@@ -103,6 +128,7 @@ class ShellViewModel @Inject constructor(
                 is Resource.Success -> {
                     knownAlertIds.clear()
                     knownCommandStatus.clear()
+                    knownMissionStatus.clear()
                     _effectFlow.emit(ShellEffect.NavigateToSelection)
                 }
                 is Resource.Error -> _effectFlow.emit(ShellEffect.ShowSnackbar(result.message))
