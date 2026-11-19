@@ -70,7 +70,7 @@ En la app, el reloj de la simulación se puede poner en x1, x5 o x10 desde el pa
 
 ## 6. Telemetría
 
-**Obligatoria (consigna):** conectividad, batería, estado operativo, misión/progreso, ubicación (potrero actual en el mapa), movimiento (velocidad y si está caminando, detenido o arreando), alertas y última actualización.
+**Obligatoria (consigna):** conectividad, batería (siempre visible en la barra superior), estado operativo, misión/progreso, ubicación (potrero actual en el mapa), movimiento (velocidad y si está caminando, detenido o arreando), alertas y última actualización.
 
 **Propias del servicio:**
 1. 🐄 **Animales contados / esperados** (ej. `42 / 45`).
@@ -96,8 +96,8 @@ Sin conexión, todos los comandos quedan deshabilitados salvo la detención oper
 
 ## 8. Escenarios a demostrar
 
-1. **Misión normal:** arreo completo, 45/45 en el corral, vuelta al galpón.
-2. **Batería baja:** cae al 20 %, aparece una alerta y se ofrece "Volver al galpón".
+1. **Misión normal:** arreo completo, 45/45 en el corral, vuelta al galpón. Al terminar la app avisa "Misión completada".
+2. **Batería baja:** arranca en 34 %; avisa al 25 % y marca crítica al 15 %. Se ofrece "Volver al galpón" (con confirmación). La batería se ve siempre en la barra superior y, antes de iniciar, en Control (mínimo 30 %).
 3. **Desconexión:** se corta el WiFi en el monte (P3); los datos aparecen en gris como "desactualizados hace X s", los comandos quedan sin respuesta, y al reconectar se resincroniza.
 4. **Incidente:** **alambrado caído** en el P4. El robot se detiene y pide decisión: rodear, esperar o volver.
 5. **Escenario propio — se viene una tormenta ⛈️:** alerta de lluvia y quedan 3 animales sin encontrar. El Go2 no es impermeable: el operador elige entre terminar rápido o volver ya.

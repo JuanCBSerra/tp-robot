@@ -19,6 +19,11 @@
 | D13 | Reloj de simulación **x1 / x5 / x10** | A x1 una misión de arreo dura ~16 min; a x10 ~1,5 min, ideal para el video. |
 | D14 | `ApplicationScope` (CoroutineScope de la app) en data | El simulador y el repositorio tienen que seguir escuchando aunque cambie la pantalla. Los ViewModels siguen usando solo `viewModelScope`. Es lo único que no estaba en el proyecto de la cátedra. |
 | D15 | Mapa dibujado con `Canvas` | Offline y sin API keys (Google Maps necesita internet). |
+| D16 | **Batería siempre visible** (barra superior) y frente al mínimo en Control | Si iniciar exige ≥ 30 %, el operador tiene que ver ese dato en todo momento y no solo en una pantalla (visibilidad del estado del sistema). |
+| D17 | **Confirmación** al cancelar la misión y al volver al galpón | Evita órdenes accidentales (riesgo 2) sin frenar las acciones urgentes: la detención sigue siendo "mantener presionado". |
+| D18 | **Aviso de misión completada** | La misión termina sin que el operador esté mirando; la app avisa con el resultado (contados / esperados). |
+| D19 | **Estrés térmico por ITH** con aviso (≥ 75) y frenado (≥ 79) | Cuida a los animales, que es el fin del servicio. Umbrales para bovinos de carne (ver sección más abajo). |
+| D20 | Tres umbrales de batería distintos | 30 % mínimo para iniciar, 25 % aviso de batería baja, 15 % mínimo para reanudar y alerta crítica. Se dejaron separados porque cumplen funciones distintas, pero hay que explicarlos en la demo. |
 
 ## Limitaciones (fuera del alcance)
 
