@@ -23,6 +23,7 @@
 | D17 | **Confirmación** al cancelar la misión y al volver al galpón | Evita órdenes accidentales (riesgo 2) sin frenar las acciones urgentes: la detención sigue siendo "mantener presionado". |
 | D18 | **Aviso de misión completada** | La misión termina sin que el operador esté mirando; la app avisa con el resultado (contados / esperados). |
 | D19 | **Estrés térmico por ITH** con aviso (≥ 75) y frenado (≥ 79) | Cuida a los animales, que es el fin del servicio. Umbrales para bovinos de carne (ver sección más abajo). |
+| D21 | **La pantalla solo dibuja**: textos, tonos y umbrales de la UI los resuelve `StatusPresenter` desde el ViewModel | Es la regla de MVVM: los Composables no consultan reglas de negocio (`OperationRules`, `HeatStress`). Así esa lógica se prueba con tests JVM, sin emulador. |
 | D20 | Tres umbrales de batería distintos | 30 % mínimo para iniciar, 25 % aviso de batería baja, 15 % mínimo para reanudar y alerta crítica. Se dejaron separados porque cumplen funciones distintas, pero hay que explicarlos en la demo. |
 
 ## Limitaciones (fuera del alcance)

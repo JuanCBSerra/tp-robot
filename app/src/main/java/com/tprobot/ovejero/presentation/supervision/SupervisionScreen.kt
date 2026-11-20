@@ -60,9 +60,9 @@ import com.tprobot.ovejero.domain.model.Alert
 import com.tprobot.ovejero.domain.model.AlertType
 import com.tprobot.ovejero.domain.model.CommandType
 import com.tprobot.ovejero.domain.model.FieldMap
-import com.tprobot.ovejero.domain.model.HeatStress
 import com.tprobot.ovejero.domain.model.MissionType
 import com.tprobot.ovejero.domain.model.Telemetry
+import com.tprobot.ovejero.presentation.common.TelemetryPanelUi
 import com.tprobot.ovejero.presentation.common.UiFormat
 import com.tprobot.ovejero.presentation.common.components.CommandButton
 import com.tprobot.ovejero.presentation.common.components.CommandRecordRow
@@ -77,7 +77,6 @@ import com.tprobot.ovejero.presentation.common.components.StatusChip
 import com.tprobot.ovejero.presentation.common.components.TelemetryTile
 import com.tprobot.ovejero.presentation.common.components.Tone
 import kotlinx.coroutines.flow.collectLatest
-import kotlin.math.roundToInt
 
 /**
  * Panel de supervisión: mapa, misión, telemetría completa (incluye las 3 variables
@@ -227,7 +226,7 @@ private fun TelemetrySections(
 
         MissionCard(telemetry, stale, onGoToControl)
 
-        TelemetryGrid(telemetry, data)
+        data.telemetryPanel?.let { panel -> TelemetryGrid(telemetry, panel, data) }
 
         SectionCard(title = "Acciones rápidas", icon = Icons.Filled.SettingsRemote) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -397,52 +396,45 @@ private fun MissionCard(telemetry: Telemetry, stale: Boolean, onGoToControl: () 
 }
 
 @Composable
-private fun TelemetryGrid(telemetry: Telemetry, data: SupervisionData) {
+private fun TelemetryGrid(telemetry: Telemetry, panel: TelemetryPanelUi, data: SupervisionData) {
     val stale = data.status.isStale
-    val herd = telemetry.herd
-    val isHerding = telemetry.mission?.type == MissionType.ARREO
-    val heatIndex = telemetry.heatIndex
-    val heatLevel = HeatStress.level(heatIndex)
     SectionCard(title = "Telemetría", icon = Icons.Filled.SettingsRemote) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 TelemetryTile(
                     label = "Batería",
-                    value = "${telemetry.batteryPercent} %",
+                    value = panel.battery.value,
                     icon = if (telemetry.isCharging) Icons.Filled.BatteryChargingFull else Icons.Filled.BatteryStd,
-                    tone = UiFormat.batteryTone(telemetry.batteryPercent),
+                    tone = panel.battery.tone,
                     stale = stale,
-                    caption = if (telemetry.isCharging) "cargando en el galpón" else null,
+                    caption = panel.battery.caption,
                     modifier = Modifier.weight(1f)
                 )
                 TelemetryTile(
                     label = "Señal",
-                    value = "${telemetry.signalPercent} %",
+                    value = panel.signal.value,
                     icon = Icons.Filled.Wifi,
-                    tone = when {
-                        telemetry.signalPercent < 40 -> Tone.ADVERTENCIA
-                        else -> Tone.OK
-                    },
+                    tone = panel.signal.tone,
                     stale = stale,
-                    caption = data.status.connection.label,
+                    caption = panel.signal.caption,
                     modifier = Modifier.weight(1f)
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 TelemetryTile(
                     label = "Movimiento",
-                    value = telemetry.motion.mode.label,
+                    value = panel.motion.value,
                     icon = Icons.AutoMirrored.Filled.DirectionsWalk,
-                    tone = Tone.NORMAL,
+                    tone = panel.motion.tone,
                     stale = stale,
-                    caption = "%.1f m/s".format(telemetry.motion.speedMetersPerSecond),
+                    caption = panel.motion.caption,
                     modifier = Modifier.weight(1f)
                 )
                 TelemetryTile(
                     label = "Ubicación",
-                    value = telemetry.position.zoneName,
+                    value = panel.location.value,
                     icon = Icons.Filled.Place,
-                    tone = Tone.NORMAL,
+                    tone = panel.location.tone,
                     stale = stale,
                     modifier = Modifier.weight(1f)
                 )
@@ -451,39 +443,31 @@ private fun TelemetryGrid(telemetry: Telemetry, data: SupervisionData) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 TelemetryTile(
                     label = "Animales contados",
-                    value = "${herd.counted} / ${herd.expected}",
+                    value = panel.counted.value,
                     icon = Icons.Filled.Pets,
-                    tone = if (telemetry.mission?.isActive == false && herd.missing > 0) Tone.ADVERTENCIA else Tone.NORMAL,
+                    tone = panel.counted.tone,
                     stale = stale,
-                    caption = if (herd.missing > 0) "faltan ${herd.missing}" else "están todos",
+                    caption = panel.counted.caption,
                     modifier = Modifier.weight(1f)
                 )
                 TelemetryTile(
                     label = "En el corral",
-                    value = if (isHerding) "${herd.inCorral} / ${herd.expected}" else "—",
+                    value = panel.corral.value,
                     icon = Icons.Filled.Warehouse,
-                    tone = Tone.NORMAL,
+                    tone = panel.corral.tone,
                     stale = stale,
-                    caption = if (isHerding) null else "solo en arreo",
+                    caption = panel.corral.caption,
                     modifier = Modifier.weight(1f)
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 TelemetryTile(
                     label = "Temperatura",
-                    value = "%.1f °C".format(telemetry.temperatureCelsius),
+                    value = panel.temperature.value,
                     icon = Icons.Filled.Thermostat,
-                    tone = when (heatLevel) {
-                        HeatStress.Level.PELIGRO -> Tone.ERROR
-                        HeatStress.Level.ALERTA -> Tone.ADVERTENCIA
-                        HeatStress.Level.SIN_ESTRES -> Tone.OK
-                    },
+                    tone = panel.temperature.tone,
                     stale = stale,
-                    caption = when (heatLevel) {
-                        HeatStress.Level.PELIGRO -> "ITH ${heatIndex.roundToInt()} · peligro"
-                        HeatStress.Level.ALERTA -> "ITH ${heatIndex.roundToInt()} · estrés térmico"
-                        HeatStress.Level.SIN_ESTRES -> "ITH ${heatIndex.roundToInt()} · hum. ${telemetry.humidityPercent} %"
-                    },
+                    caption = panel.temperature.caption,
                     modifier = Modifier.weight(1f)
                 )
                 TelemetryTile(

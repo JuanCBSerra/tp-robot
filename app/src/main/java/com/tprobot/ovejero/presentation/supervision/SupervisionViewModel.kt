@@ -20,6 +20,8 @@ import com.tprobot.ovejero.domain.usecase.OperationalStopUseCase
 import com.tprobot.ovejero.domain.usecase.PauseMissionUseCase
 import com.tprobot.ovejero.domain.usecase.ResumeMissionUseCase
 import com.tprobot.ovejero.domain.usecase.ReturnToBaseUseCase
+import com.tprobot.ovejero.presentation.common.StatusPresenter
+import com.tprobot.ovejero.presentation.common.TelemetryPanelUi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,7 +40,9 @@ data class SupervisionData(
     val alerts: List<Alert>,
     val availability: Map<CommandType, CommandAvailability>,
     val pendingDecision: Alert?,
-    val lastCommand: CommandRecord?
+    val lastCommand: CommandRecord?,
+    /** Celdas de telemetría ya resueltas (textos y tonos); nulo si todavía no llegó telemetría. */
+    val telemetryPanel: TelemetryPanelUi? = null
 ) {
     val unacknowledgedAlerts: Int get() = alerts.count { !it.acknowledged }
 }
@@ -89,7 +93,8 @@ class SupervisionViewModel @Inject constructor(
                     } else {
                         null
                     },
-                    lastCommand = commands.firstOrNull()
+                    lastCommand = commands.firstOrNull(),
+                    telemetryPanel = status.telemetry?.let { StatusPresenter.telemetryPanel(status, it) }
                 )
             }
                 .catch { e -> _uiState.value = UiState.Error("No se pudo leer el estado del robot: ${e.message}") }

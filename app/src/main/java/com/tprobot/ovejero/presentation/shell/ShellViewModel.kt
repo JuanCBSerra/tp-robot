@@ -11,6 +11,7 @@ import com.tprobot.ovejero.domain.usecase.DisconnectRobotUseCase
 import com.tprobot.ovejero.domain.usecase.ObserveAlertsUseCase
 import com.tprobot.ovejero.domain.usecase.ObserveCommandsUseCase
 import com.tprobot.ovejero.domain.usecase.ObserveRobotStatusUseCase
+import com.tprobot.ovejero.presentation.common.StatusPresenter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,6 +43,10 @@ class ShellViewModel @Inject constructor(
     private val _status = MutableStateFlow(RobotStatus.disconnected(System.currentTimeMillis()))
     val status: StateFlow<RobotStatus> = _status.asStateFlow()
 
+    /** Texto de batería para el subtítulo de la barra superior (vacío si no hay telemetría). */
+    private val _batterySuffix = MutableStateFlow("")
+    val batterySuffix: StateFlow<String> = _batterySuffix.asStateFlow()
+
     private val _unacknowledgedAlerts = MutableStateFlow(0)
     val unacknowledgedAlerts: StateFlow<Int> = _unacknowledgedAlerts.asStateFlow()
 
@@ -62,6 +67,7 @@ class ShellViewModel @Inject constructor(
         viewModelScope.launch {
             observeRobotStatusUseCase().collect { status ->
                 _status.value = status
+                _batterySuffix.value = StatusPresenter.topBarBatterySuffix(status)
                 notifyMissionCompleted(status)
             }
         }

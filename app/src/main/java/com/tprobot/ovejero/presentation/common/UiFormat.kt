@@ -15,7 +15,6 @@ import com.tprobot.ovejero.domain.model.CommandStatus
 import com.tprobot.ovejero.domain.model.CommandType
 import com.tprobot.ovejero.domain.model.ConnectionState
 import com.tprobot.ovejero.domain.model.MissionStatus
-import com.tprobot.ovejero.domain.model.OperationRules
 import com.tprobot.ovejero.domain.model.OperationalState
 import com.tprobot.ovejero.presentation.common.components.Tone
 import java.text.SimpleDateFormat
@@ -36,11 +35,7 @@ object UiFormat {
         else -> "hace ${seconds / 60} min ${seconds % 60} s"
     }
 
-    fun batteryTone(percent: Int): Tone = when {
-        percent <= OperationRules.MIN_BATTERY_TO_RESUME -> Tone.ERROR
-        percent <= OperationRules.LOW_BATTERY_WARNING -> Tone.ADVERTENCIA
-        else -> Tone.OK
-    }
+    fun batteryTone(percent: Int): Tone = StatusPresenter.batteryTone(percent)
 
     fun connectionTone(state: ConnectionState): Tone = when (state) {
         ConnectionState.CONECTADO -> Tone.OK

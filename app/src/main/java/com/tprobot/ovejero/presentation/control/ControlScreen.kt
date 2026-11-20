@@ -55,6 +55,7 @@ import com.tprobot.ovejero.presentation.common.components.ErrorStateView
 import com.tprobot.ovejero.presentation.common.components.HoldToConfirmButton
 import com.tprobot.ovejero.presentation.common.components.LoadingStateView
 import com.tprobot.ovejero.presentation.common.components.SectionCard
+import com.tprobot.ovejero.presentation.common.BatteryRequirementUi
 import com.tprobot.ovejero.presentation.common.components.Tone
 import kotlinx.coroutines.flow.collectLatest
 
@@ -168,7 +169,7 @@ private fun ControlContent(
                     onClick = onStart,
                     primary = true
                 )
-                BatteryRequirement(data.status)
+                BatteryRequirement(data.batteryRequirement)
                 Text(
                     "Requisitos: robot en el galpón, sin misión activa y batería ≥ ${OperationRules.MIN_BATTERY_TO_START} %.",
                     style = MaterialTheme.typography.bodyMedium,
@@ -263,33 +264,12 @@ private fun MissionOption(type: MissionType, selected: Boolean, onSelect: () -> 
     }
 }
 
-/**
- * Batería actual frente al mínimo para iniciar, justo donde está el botón de iniciar.
- * Ojo: se compara contra MIN_BATTERY_TO_START (no contra el umbral de advertencia general),
- * así el color coincide con lo que realmente habilita o bloquea la orden.
- */
+/** Batería frente al mínimo para iniciar: el texto y el color ya vienen resueltos por el ViewModel. */
 @Composable
-private fun BatteryRequirement(status: com.tprobot.ovejero.domain.model.RobotStatus) {
-    val battery = status.telemetry?.batteryPercent
-    val text: String
-    val color: androidx.compose.ui.graphics.Color
-    when {
-        battery == null -> {
-            text = "Batería: sin datos (mínimo ${OperationRules.MIN_BATTERY_TO_START} %)"
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        }
-        status.isStale -> {
-            text = "Batería: $battery % · dato viejo (mínimo ${OperationRules.MIN_BATTERY_TO_START} %)"
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        }
-        battery >= OperationRules.MIN_BATTERY_TO_START -> {
-            text = "Batería: $battery % (mínimo ${OperationRules.MIN_BATTERY_TO_START} %)"
-            color = Tone.OK.content
-        }
-        else -> {
-            text = "Batería: $battery % · insuficiente para iniciar (mínimo ${OperationRules.MIN_BATTERY_TO_START} %)"
-            color = Tone.ERROR.content
-        }
-    }
-    Text(text, style = MaterialTheme.typography.titleMedium, color = color)
+private fun BatteryRequirement(requirement: BatteryRequirementUi) {
+    Text(
+        requirement.text,
+        style = MaterialTheme.typography.titleMedium,
+        color = requirement.tone?.content ?: MaterialTheme.colorScheme.onSurfaceVariant
+    )
 }
