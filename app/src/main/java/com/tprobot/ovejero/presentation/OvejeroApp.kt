@@ -82,6 +82,7 @@ fun OvejeroApp(
     val currentRoute = navBackStackEntry?.destination?.route
     val status by shellViewModel.status.collectAsStateWithLifecycle()
     val alertCount by shellViewModel.unacknowledgedAlerts.collectAsStateWithLifecycle()
+    val batterySuffix by shellViewModel.batterySuffix.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var confirmDisconnect by rememberSaveable { mutableStateOf(false) }
 
@@ -133,7 +134,11 @@ fun OvejeroApp(
                         Column {
                             Text(status.robot?.name ?: "El Ovejero")
                             Text(
-                                status.connection.label + (status.robot?.let { " · ${it.model}" } ?: ""),
+                                status.connection.label +
+                                    batterySuffix +
+                                    (status.robot?.let { " · ${it.model}" } ?: ""),
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color.White.copy(alpha = 0.85f)
                             )

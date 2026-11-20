@@ -21,6 +21,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Habilita el reporte de cobertura: ./gradlew createDebugUnitTestCoverageReport
+            enableUnitTestCoverage = true
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(

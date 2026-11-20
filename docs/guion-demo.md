@@ -17,13 +17,14 @@ Antes de cada escenario: **🧪 Panel de simulación → elegir escenario** (rei
 ## 1. Misión normal (1 min)
 - Escenario "1 · Misión normal", x10, **Arreo al corral**.
 - Mostrar: orden *pendiente → confirmada*, el robot moviéndose en el mapa, progreso, animales contados, en el corral.
-- Al final: **45/45** en el corral, misión *Completada*, vuelve al galpón. Ir a **Historial → Misiones**.
+- Mostrar la **batería** (🔋 en la barra superior) y, en Control, la línea "Batería: N % (mínimo 30 %)" antes de iniciar.
+- Al final: **45/45** en el corral, aparece el aviso **"✅ Misión completada"**, la misión queda *Completada* y vuelve al galpón. Ir a **Historial → Misiones**.
 - 📸 Evidencia: captura del panel con 45/45 y del historial.
 
 ## 2. Batería baja (1 min)
 - Escenario "2 · Batería baja" (arranca con 34 %).
-- Mostrar: alerta *Batería baja* al 25 % (chip naranja), *Batería crítica* al 15 % (rojo), "Reanudar" deshabilitado con su motivo.
-- Acción disponible: **Volver al galpón** → confirmada → el robot vuelve. (Si no se hace nada, al 10 % vuelve solo).
+- Mostrar: la batería en la barra superior (con ⚠️ desde 25 %); alerta *Batería baja* al 25 % (chip naranja), *Batería crítica* al 15 % (rojo), "Reanudar" deshabilitado con su motivo.
+- Acción disponible: **Volver al galpón** → aparece el diálogo "¿Volver al galpón?" → **Confirmar** → orden confirmada → el robot vuelve. (Si no se hace nada, al 10 % vuelve solo).
 - 📸 Evidencia: alerta + botón con motivo + orden confirmada.
 
 ## 3. Desconexión (1 min)

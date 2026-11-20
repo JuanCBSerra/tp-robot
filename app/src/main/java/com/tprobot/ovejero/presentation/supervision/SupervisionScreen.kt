@@ -43,7 +43,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -59,9 +62,11 @@ import com.tprobot.ovejero.domain.model.CommandType
 import com.tprobot.ovejero.domain.model.FieldMap
 import com.tprobot.ovejero.domain.model.MissionType
 import com.tprobot.ovejero.domain.model.Telemetry
+import com.tprobot.ovejero.presentation.common.TelemetryPanelUi
 import com.tprobot.ovejero.presentation.common.UiFormat
 import com.tprobot.ovejero.presentation.common.components.CommandButton
 import com.tprobot.ovejero.presentation.common.components.CommandRecordRow
+import com.tprobot.ovejero.presentation.common.components.ConfirmCommandDialog
 import com.tprobot.ovejero.presentation.common.components.EmptyStateView
 import com.tprobot.ovejero.presentation.common.components.ErrorStateView
 import com.tprobot.ovejero.presentation.common.components.FieldMapView
@@ -84,6 +89,8 @@ fun SupervisionScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    var confirmReturn by rememberSaveable { mutableStateOf(false) }
+    var confirmCancel by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.effectFlow.collectLatest { effect ->
@@ -92,6 +99,33 @@ fun SupervisionScreen(
                     snackbarHostState.showSnackbar(effect.message, duration = SnackbarDuration.Short)
             }
         }
+    }
+
+    if (confirmReturn) {
+        ConfirmCommandDialog(
+            title = "¿Volver al galpón?",
+            text = "El robot interrumpe lo que está haciendo y vuelve al punto seguro. Si hay una misión en curso, se corta.",
+            confirmLabel = "Sí, volver",
+            dismissLabel = "Quedarme",
+            onConfirm = {
+                confirmReturn = false
+                viewModel.returnToBase()
+            },
+            onDismiss = { confirmReturn = false }
+        )
+    }
+    if (confirmCancel) {
+        ConfirmCommandDialog(
+            title = "¿Cancelar la misión?",
+            text = "El robot deja la recorrida y vuelve al galpón. Los animales que estaba arreando quedan donde estén.",
+            confirmLabel = "Sí, cancelar",
+            dismissLabel = "Seguir con la misión",
+            onConfirm = {
+                confirmCancel = false
+                viewModel.cancel()
+            },
+            onDismiss = { confirmCancel = false }
+        )
     }
 
     Scaffold(
@@ -107,8 +141,8 @@ fun SupervisionScreen(
                 data = state.data,
                 onPause = viewModel::pause,
                 onResume = viewModel::resume,
-                onCancel = viewModel::cancel,
-                onReturn = viewModel::returnToBase,
+                onCancel = { confirmCancel = true },
+                onReturn = { confirmReturn = true },
                 onStop = viewModel::operationalStop,
                 onAcknowledge = viewModel::acknowledge,
                 onGoToControl = onGoToControl,
@@ -192,7 +226,7 @@ private fun TelemetrySections(
 
         MissionCard(telemetry, stale, onGoToControl)
 
-        TelemetryGrid(telemetry, data)
+        data.telemetryPanel?.let { panel -> TelemetryGrid(telemetry, panel, data) }
 
         SectionCard(title = "Acciones rápidas", icon = Icons.Filled.SettingsRemote) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -361,50 +395,45 @@ private fun MissionCard(telemetry: Telemetry, stale: Boolean, onGoToControl: () 
 }
 
 @Composable
-private fun TelemetryGrid(telemetry: Telemetry, data: SupervisionData) {
+private fun TelemetryGrid(telemetry: Telemetry, panel: TelemetryPanelUi, data: SupervisionData) {
     val stale = data.status.isStale
-    val herd = telemetry.herd
-    val isHerding = telemetry.mission?.type == MissionType.ARREO
     SectionCard(title = "Telemetría", icon = Icons.Filled.SettingsRemote) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 TelemetryTile(
                     label = "Batería",
-                    value = "${telemetry.batteryPercent} %",
+                    value = panel.battery.value,
                     icon = if (telemetry.isCharging) Icons.Filled.BatteryChargingFull else Icons.Filled.BatteryStd,
-                    tone = UiFormat.batteryTone(telemetry.batteryPercent),
+                    tone = panel.battery.tone,
                     stale = stale,
-                    caption = if (telemetry.isCharging) "cargando en el galpón" else null,
+                    caption = panel.battery.caption,
                     modifier = Modifier.weight(1f)
                 )
                 TelemetryTile(
                     label = "Señal",
-                    value = "${telemetry.signalPercent} %",
+                    value = panel.signal.value,
                     icon = Icons.Filled.Wifi,
-                    tone = when {
-                        telemetry.signalPercent < 40 -> Tone.ADVERTENCIA
-                        else -> Tone.OK
-                    },
+                    tone = panel.signal.tone,
                     stale = stale,
-                    caption = data.status.connection.label,
+                    caption = panel.signal.caption,
                     modifier = Modifier.weight(1f)
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 TelemetryTile(
                     label = "Movimiento",
-                    value = telemetry.motion.mode.label,
+                    value = panel.motion.value,
                     icon = Icons.AutoMirrored.Filled.DirectionsWalk,
-                    tone = Tone.NORMAL,
+                    tone = panel.motion.tone,
                     stale = stale,
-                    caption = "%.1f m/s".format(telemetry.motion.speedMetersPerSecond),
+                    caption = panel.motion.caption,
                     modifier = Modifier.weight(1f)
                 )
                 TelemetryTile(
                     label = "Ubicación",
-                    value = telemetry.position.zoneName,
+                    value = panel.location.value,
                     icon = Icons.Filled.Place,
-                    tone = Tone.NORMAL,
+                    tone = panel.location.tone,
                     stale = stale,
                     modifier = Modifier.weight(1f)
                 )
@@ -413,35 +442,31 @@ private fun TelemetryGrid(telemetry: Telemetry, data: SupervisionData) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 TelemetryTile(
                     label = "Animales contados",
-                    value = "${herd.counted} / ${herd.expected}",
+                    value = panel.counted.value,
                     icon = Icons.Filled.Pets,
-                    tone = if (telemetry.mission?.isActive == false && herd.missing > 0) Tone.ADVERTENCIA else Tone.NORMAL,
+                    tone = panel.counted.tone,
                     stale = stale,
-                    caption = if (herd.missing > 0) "faltan ${herd.missing}" else "están todos",
+                    caption = panel.counted.caption,
                     modifier = Modifier.weight(1f)
                 )
                 TelemetryTile(
                     label = "En el corral",
-                    value = if (isHerding) "${herd.inCorral} / ${herd.expected}" else "—",
+                    value = panel.corral.value,
                     icon = Icons.Filled.Warehouse,
-                    tone = Tone.NORMAL,
+                    tone = panel.corral.tone,
                     stale = stale,
-                    caption = if (isHerding) null else "solo en arreo",
+                    caption = panel.corral.caption,
                     modifier = Modifier.weight(1f)
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 TelemetryTile(
-                    label = "Temperatura",
-                    value = "%.1f °C".format(telemetry.temperatureCelsius),
+                    label = "Temp. del robot",
+                    value = panel.temperature.value,
                     icon = Icons.Filled.Thermostat,
-                    tone = when {
-                        telemetry.temperatureCelsius >= 38 -> Tone.ERROR
-                        telemetry.temperatureCelsius >= 34 -> Tone.ADVERTENCIA
-                        else -> Tone.OK
-                    },
+                    tone = panel.temperature.tone,
                     stale = stale,
-                    caption = if (telemetry.temperatureCelsius >= 34) "estrés térmico" else null,
+                    caption = panel.temperature.caption,
                     modifier = Modifier.weight(1f)
                 )
                 TelemetryTile(

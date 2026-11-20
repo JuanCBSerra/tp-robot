@@ -19,6 +19,11 @@
 | D13 | Reloj de simulación **x1 / x5 / x10** | A x1 una misión de arreo dura ~16 min; a x10 ~1,5 min, ideal para el video. |
 | D14 | `ApplicationScope` (CoroutineScope de la app) en data | El simulador y el repositorio tienen que seguir escuchando aunque cambie la pantalla. Los ViewModels siguen usando solo `viewModelScope`. Es lo único que no estaba en el proyecto de la cátedra. |
 | D15 | Mapa dibujado con `Canvas` | Offline y sin API keys (Google Maps necesita internet). |
+| D16 | **Batería siempre visible** (barra superior) y frente al mínimo en Control | Si iniciar exige ≥ 30 %, el operador tiene que ver ese dato en todo momento y no solo en una pantalla (visibilidad del estado del sistema). |
+| D17 | **Confirmación** al cancelar la misión y al volver al galpón | Evita órdenes accidentales (riesgo 2) sin frenar las acciones urgentes: la detención sigue siendo "mantener presionado". |
+| D18 | **Aviso de misión completada** | La misión termina sin que el operador esté mirando; la app avisa con el resultado (contados / esperados). |
+| D19 | **La pantalla solo dibuja**: textos, tonos y umbrales de la UI los resuelve `StatusPresenter` desde el ViewModel | Es la regla de MVVM: los Composables no consultan reglas de negocio (`OperationRules`, `HeatStress`). Así esa lógica se prueba con tests JVM, sin emulador. |
+| D20 | Tres umbrales de batería distintos | 30 % mínimo para iniciar, 25 % aviso de batería baja, 15 % mínimo para reanudar y alerta crítica. Se dejaron separados porque cumplen funciones distintas, pero hay que explicarlos en la demo. |
 
 ## Limitaciones (fuera del alcance)
 
@@ -38,5 +43,5 @@
 | 1 | Persona cerca del robot | Alerta `PERSON_NEARBY`; el robot baja a 0,4 m/s (se demuestra desde el panel de simulación). |
 | 2 | Orden accidental | Confirmación para cancelar misión y desconectar; detención con "mantener presionado". |
 | 3 | Pérdida de conexión | Banner rojo, datos en gris "dato viejo", órdenes bloqueadas (salvo detención), "sin respuesta" a los 5 s, regreso autónomo a los 2 min. |
-| 4 | Estrés de la hacienda | Velocidad de arreo limitada a 1 m/s; temperatura con aviso de estrés térmico ≥ 34 °C. |
+| 4 | Estrés de la hacienda | Velocidad de arreo limitada a 1 m/s. |
 | 5 | Privacidad | La app no guarda imágenes ni video; el historial solo tiene números y eventos. |

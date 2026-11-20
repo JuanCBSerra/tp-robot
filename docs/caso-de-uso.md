@@ -70,12 +70,12 @@ En la app, el reloj de la simulación se puede poner en x1, x5 o x10 desde el pa
 
 ## 6. Telemetría
 
-**Obligatoria (consigna):** conectividad, batería, estado operativo, misión/progreso, ubicación (potrero actual en el mapa), movimiento (velocidad y si está caminando, detenido o arreando), alertas y última actualización.
+**Obligatoria (consigna):** conectividad, batería (siempre visible en la barra superior), estado operativo, misión/progreso, ubicación (potrero actual en el mapa), movimiento (velocidad y si está caminando, detenido o arreando), alertas y última actualización.
 
 **Propias del servicio:**
 1. 🐄 **Animales contados / esperados** (ej. `42 / 45`).
 2. 🐄 **Animales en el corral** (ej. `30 / 45`), el avance real del arreo.
-3. 🌡️ **Temperatura ambiente**. Se marca en naranja desde 34 °C y en rojo desde 38 °C (estrés térmico de la hacienda y del robot).
+3. 🌡️ **Temperatura del robot** (interna: el Go2 no mide el ambiente). Se marca en naranja desde 34 °C y en rojo desde 38 °C (sobrecalentamiento).
 
 ## 7. Comandos
 
@@ -96,8 +96,8 @@ Sin conexión, todos los comandos quedan deshabilitados salvo la detención oper
 
 ## 8. Escenarios a demostrar
 
-1. **Misión normal:** arreo completo, 45/45 en el corral, vuelta al galpón.
-2. **Batería baja:** cae al 20 %, aparece una alerta y se ofrece "Volver al galpón".
+1. **Misión normal:** arreo completo, 45/45 en el corral, vuelta al galpón. Al terminar la app avisa "Misión completada".
+2. **Batería baja:** arranca en 34 %; avisa al 25 % y marca crítica al 15 %. Se ofrece "Volver al galpón" (con confirmación). La batería se ve siempre en la barra superior y, antes de iniciar, en Control (mínimo 30 %).
 3. **Desconexión:** se corta el WiFi en el monte (P3); los datos aparecen en gris como "desactualizados hace X s", los comandos quedan sin respuesta, y al reconectar se resincroniza.
 4. **Incidente:** **alambrado caído** en el P4. El robot se detiene y pide decisión: rodear, esperar o volver.
 5. **Escenario propio — se viene una tormenta ⛈️:** alerta de lluvia y quedan 3 animales sin encontrar. El Go2 no es impermeable: el operador elige entre terminar rápido o volver ya.
@@ -109,7 +109,7 @@ Sin conexión, todos los comandos quedan deshabilitados salvo la detención oper
 | 1 | Persona cerca del robot (peón, chicos) | El robot reporta "persona cerca" y baja la velocidad; alerta en la app |
 | 2 | Orden accidental desde el celular | Confirmación en Cancelar; mantener presionado en Detención |
 | 3 | Pérdida de conexión en el monte | Datos marcados como viejos, comandos bloqueados, el robot sigue la misión o vuelve solo si pasan más de 2 min |
-| 4 | Estrés de la hacienda | Velocidad máxima limitada mientras arrea (1 m/s); aviso de estrés térmico con más de 34 °C |
+| 4 | Estrés de la hacienda | Velocidad máxima limitada mientras arrea (1 m/s) |
 | 5 | Privacidad (la cámara filma lindes con vecinos) | La app no guarda video; el historial solo guarda eventos y números |
 
 ## 10. Alcance

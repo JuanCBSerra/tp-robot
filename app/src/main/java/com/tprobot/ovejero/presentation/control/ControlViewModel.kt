@@ -21,6 +21,8 @@ import com.tprobot.ovejero.domain.usecase.PauseMissionUseCase
 import com.tprobot.ovejero.domain.usecase.ResumeMissionUseCase
 import com.tprobot.ovejero.domain.usecase.ReturnToBaseUseCase
 import com.tprobot.ovejero.domain.usecase.StartMissionUseCase
+import com.tprobot.ovejero.presentation.common.BatteryRequirementUi
+import com.tprobot.ovejero.presentation.common.StatusPresenter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,7 +40,9 @@ data class ControlData(
     val availability: Map<CommandType, CommandAvailability>,
     val commands: List<CommandRecord>,
     val selectedMissionType: MissionType,
-    val oldestUnacknowledgedAlert: Alert?
+    val oldestUnacknowledgedAlert: Alert?,
+    /** Batería frente al mínimo para iniciar, con texto y color ya resueltos. */
+    val batteryRequirement: BatteryRequirementUi
 )
 
 sealed interface ControlEffect {
@@ -90,7 +94,8 @@ class ControlViewModel @Inject constructor(
                     availability = getCommandAvailabilityUseCase(status, alerts, commands),
                     commands = commands,
                     selectedMissionType = missionType,
-                    oldestUnacknowledgedAlert = alerts.filter { !it.acknowledged }.minByOrNull { it.timestampMillis }
+                    oldestUnacknowledgedAlert = alerts.filter { !it.acknowledged }.minByOrNull { it.timestampMillis },
+                    batteryRequirement = StatusPresenter.batteryRequirement(status)
                 )
             }
                 .catch { e -> _uiState.value = UiState.Error("No se pudo leer el estado del robot: ${e.message}") }
