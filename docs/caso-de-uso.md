@@ -75,7 +75,7 @@ En la app, el reloj de la simulación se puede poner en x1, x5 o x10 desde el pa
 **Propias del servicio:**
 1. 🐄 **Animales contados / esperados** (ej. `42 / 45`).
 2. 🐄 **Animales en el corral** (ej. `30 / 45`), el avance real del arreo.
-3. 🌡️ **Temperatura ambiente y estrés térmico**. Se muestra la temperatura junto con el **ITH** (índice de temperatura y humedad). La celda se marca en naranja desde ITH 75 (alerta) y en rojo desde ITH 79 (peligro), con umbrales para bovinos de carne (ver `decisiones-y-limitaciones.md`). Al pasar esos umbrales aparece una alerta "Calor: riesgo para los animales"; en el nivel de peligro el robot se frena y espera la decisión del operador.
+3. 🌡️ **Temperatura del robot** (interna: el Go2 no mide el ambiente). Se marca en naranja desde 34 °C y en rojo desde 38 °C (sobrecalentamiento).
 
 ## 7. Comandos
 
@@ -85,7 +85,7 @@ En la app, el reloj de la simulación se puede poner en x1, x5 o x10 desde el pa
 | Pausar | Misión en curso | — |
 | Reanudar | Misión pausada y batería ≥ 15 % | — |
 | Cancelar misión | Misión en curso o pausada | Sí (diálogo) |
-| Volver al galpón | Robot fuera del galpón | Sí (diálogo) |
+| Volver al galpón | Robot fuera del galpón | — |
 | Detención operativa | Robot en movimiento | Sí (mantener presionado) |
 | Reconocer alerta | Hay alertas sin reconocer | — |
 
@@ -101,16 +101,15 @@ Sin conexión, todos los comandos quedan deshabilitados salvo la detención oper
 3. **Desconexión:** se corta el WiFi en el monte (P3); los datos aparecen en gris como "desactualizados hace X s", los comandos quedan sin respuesta, y al reconectar se resincroniza.
 4. **Incidente:** **alambrado caído** en el P4. El robot se detiene y pide decisión: rodear, esperar o volver.
 5. **Escenario propio — se viene una tormenta ⛈️:** alerta de lluvia y quedan 3 animales sin encontrar. El Go2 no es impermeable: el operador elige entre terminar rápido o volver ya.
-6. **Escenario extra — ola de calor 🌡️:** durante el recorrido sube el ITH: primero una advertencia (ITH 75) y después el robot se frena (ITH 79) y el operador decide entre seguir con cuidado o volver al galpón.
 
 ## 9. Riesgos y medidas
 
 | # | Riesgo | Medida |
 |---|---|---|
 | 1 | Persona cerca del robot (peón, chicos) | El robot reporta "persona cerca" y baja la velocidad; alerta en la app |
-| 2 | Orden accidental desde el celular | Confirmación en Cancelar y en Volver al galpón; mantener presionado en Detención |
+| 2 | Orden accidental desde el celular | Confirmación en Cancelar; mantener presionado en Detención |
 | 3 | Pérdida de conexión en el monte | Datos marcados como viejos, comandos bloqueados, el robot sigue la misión o vuelve solo si pasan más de 2 min |
-| 4 | Estrés de la hacienda | Velocidad máxima limitada mientras arrea (1 m/s); alerta de estrés térmico por ITH (aviso ≥ 75, el robot se frena ≥ 79) |
+| 4 | Estrés de la hacienda | Velocidad máxima limitada mientras arrea (1 m/s) |
 | 5 | Privacidad (la cámara filma lindes con vecinos) | La app no guarda video; el historial solo guarda eventos y números |
 
 ## 10. Alcance

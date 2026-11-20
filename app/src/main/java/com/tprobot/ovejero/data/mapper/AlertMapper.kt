@@ -30,7 +30,6 @@ object AlertMapper {
         RobotProtocol.AlertCode.STORM -> AlertType.TORMENTA
         RobotProtocol.AlertCode.PERSON_NEARBY -> AlertType.PERSONA_CERCA
         RobotProtocol.AlertCode.MISSING_ANIMALS -> AlertType.ANIMALES_FALTANTES
-        RobotProtocol.AlertCode.HEAT_STRESS -> AlertType.ESTRES_TERMICO
         else -> AlertType.DESCONOCIDA
     }
 

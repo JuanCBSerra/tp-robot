@@ -50,7 +50,6 @@ object Fixtures {
         mission: MissionProgress? = null,
         herd: HerdStatus = HerdStatus(10, 45, 0),
         temperature: Double = 25.0,
-        humidity: Int = 55,
         signal: Int = 90,
         charging: Boolean = false,
         motion: Motion = Motion(MotionMode.CAMINANDO, 1.5),
@@ -69,8 +68,7 @@ object Fixtures {
         motion = motion,
         herd = herd,
         temperatureCelsius = temperature,
-        signalPercent = signal,
-        humidityPercent = humidity
+        signalPercent = signal
     )
 
     fun status(

@@ -15,12 +15,8 @@ data class Telemetry(
     val motion: Motion,
     val herd: HerdStatus,
     val temperatureCelsius: Double,
-    val signalPercent: Int,
-    val humidityPercent: Int = OperationRules.ASSUMED_HUMIDITY_PERCENT
-) {
-    /** Índice de temperatura y humedad (ver [HeatStress]). */
-    val heatIndex: Double get() = HeatStress.thi(temperatureCelsius, humidityPercent)
-}
+    val signalPercent: Int
+)
 
 enum class OperationalState(val label: String) {
     EN_BASE("En el galpón"),

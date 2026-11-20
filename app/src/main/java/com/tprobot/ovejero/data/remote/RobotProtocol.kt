@@ -65,7 +65,6 @@ object RobotProtocol {
         const val STORM = "STORM"
         const val PERSON_NEARBY = "PERSON_NEARBY"
         const val MISSING_ANIMALS = "MISSING_ANIMALS"
-        const val HEAT_STRESS = "HEAT_STRESS"
     }
 
     object Severity {

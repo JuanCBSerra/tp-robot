@@ -115,7 +115,7 @@ class QueryUseCasesTest {
 
     @Test
     fun `aplicar una accion de simulacion y observar los ajustes`() = runBlocking {
-        val action = SimulationAction.LoadScenario(Scenario.CALOR)
+        val action = SimulationAction.LoadScenario(Scenario.TORMENTA)
 
         val result = ApplySimulationActionUseCase(simulation)(action)
 

@@ -1,12 +1,10 @@
 package com.tprobot.ovejero.presentation.common
 
-import com.tprobot.ovejero.domain.model.HeatStress
 import com.tprobot.ovejero.domain.model.MissionType
 import com.tprobot.ovejero.domain.model.OperationRules
 import com.tprobot.ovejero.domain.model.RobotStatus
 import com.tprobot.ovejero.domain.model.Telemetry
 import com.tprobot.ovejero.presentation.common.components.Tone
-import kotlin.math.roundToInt
 
 /** Una celda de telemetría ya resuelta: la pantalla solo la dibuja. */
 data class TileUi(
@@ -42,6 +40,10 @@ object StatusPresenter {
 
     /** Debajo de este porcentaje de señal la celda pasa a advertencia. */
     const val LOW_SIGNAL_PERCENT = 40
+
+    /** Temperatura interna del robot: aviso y peligro. */
+    const val TEMPERATURE_WARNING_CELSIUS = 34.0
+    const val TEMPERATURE_DANGER_CELSIUS = 38.0
 
     fun batteryTone(percent: Int): Tone = when {
         percent <= OperationRules.MIN_BATTERY_TO_RESUME -> Tone.ERROR
@@ -79,15 +81,18 @@ object StatusPresenter {
         }
     }
 
+    /** Temperatura interna del robot (el Go2 no mide el ambiente): avisa por sobrecalentamiento. */
     fun temperatureTile(telemetry: Telemetry): TileUi {
-        val heatIndex = telemetry.heatIndex
-        val ith = heatIndex.roundToInt()
-        val (tone, caption) = when (HeatStress.level(heatIndex)) {
-            HeatStress.Level.PELIGRO -> Tone.ERROR to "ITH $ith · peligro"
-            HeatStress.Level.ALERTA -> Tone.ADVERTENCIA to "ITH $ith · estrés térmico"
-            HeatStress.Level.SIN_ESTRES -> Tone.OK to "ITH $ith · hum. ${telemetry.humidityPercent} %"
-        }
-        return TileUi(value = "%.1f °C".format(telemetry.temperatureCelsius), caption = caption, tone = tone)
+        val celsius = telemetry.temperatureCelsius
+        return TileUi(
+            value = "%.1f °C".format(celsius),
+            caption = if (celsius >= TEMPERATURE_WARNING_CELSIUS) "sobrecalentamiento" else null,
+            tone = when {
+                celsius >= TEMPERATURE_DANGER_CELSIUS -> Tone.ERROR
+                celsius >= TEMPERATURE_WARNING_CELSIUS -> Tone.ADVERTENCIA
+                else -> Tone.OK
+            }
+        )
     }
 
     fun telemetryPanel(status: RobotStatus, telemetry: Telemetry): TelemetryPanelUi {

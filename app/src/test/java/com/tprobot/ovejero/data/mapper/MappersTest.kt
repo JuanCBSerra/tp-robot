@@ -74,7 +74,6 @@ class MappersTest {
             RobotProtocol.AlertCode.STORM to AlertType.TORMENTA,
             RobotProtocol.AlertCode.PERSON_NEARBY to AlertType.PERSONA_CERCA,
             RobotProtocol.AlertCode.MISSING_ANIMALS to AlertType.ANIMALES_FALTANTES,
-            RobotProtocol.AlertCode.HEAT_STRESS to AlertType.ESTRES_TERMICO,
             "OTRO_CODIGO" to AlertType.DESCONOCIDA
         )
         expected.forEach { (code, type) -> assertEquals(code, type, AlertMapper.toAlertType(code)) }

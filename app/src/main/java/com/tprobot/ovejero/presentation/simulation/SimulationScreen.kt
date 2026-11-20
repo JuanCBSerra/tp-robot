@@ -185,7 +185,6 @@ private fun SimulationContent(
                 ActionButton("Bajar batería al 22 %") { onAction(SimulationAction.DrainBattery) }
                 ActionButton("Alambrado caído (obstáculo)") { onAction(SimulationAction.TriggerObstacle) }
                 ActionButton("Se viene una tormenta") { onAction(SimulationAction.TriggerStorm) }
-                ActionButton("Ola de calor (estrés térmico)") { onAction(SimulationAction.TriggerHeat) }
                 ActionButton("Persona cerca del robot") { onAction(SimulationAction.TriggerPersonNearby) }
             }
         }

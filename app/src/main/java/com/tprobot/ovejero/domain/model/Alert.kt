@@ -18,7 +18,6 @@ enum class AlertType(val label: String) {
     OBSTACULO("Obstáculo en el camino"),
     TORMENTA("Se viene una tormenta"),
     PERSONA_CERCA("Persona cerca del robot"),
-    ESTRES_TERMICO("Calor: riesgo para los animales"),
     ANIMALES_FALTANTES("Faltan animales"),
     DESCONOCIDA("Alerta")
 }

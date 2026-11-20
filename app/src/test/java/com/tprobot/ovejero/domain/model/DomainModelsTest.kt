@@ -42,23 +42,6 @@ class DomainModelsTest {
     }
 
     @Test
-    fun `indice de calor usa la humedad que informa el robot`() {
-        val telemetry = Fixtures.telemetry(temperature = 33.0, humidity = 62)
-        assertEquals(HeatStress.thi(33.0, 62), telemetry.heatIndex, 0.0001)
-    }
-
-    @Test
-    fun `humedad por defecto es la asumida`() {
-        val telemetry = Telemetry(
-            robotId = "OVJ-01", timestampMillis = 0, sequence = 1, batteryPercent = 50, isCharging = false,
-            operationalState = OperationalState.EN_BASE, mission = null,
-            position = Position(0f, 0f, "Galpón", 0), motion = Motion(MotionMode.QUIETO, 0.0),
-            herd = HerdStatus(0, 45, 0), temperatureCelsius = 25.0, signalPercent = 80
-        )
-        assertEquals(OperationRules.ASSUMED_HUMIDITY_PERCENT, telemetry.humidityPercent)
-    }
-
-    @Test
     fun `animales faltantes nunca es negativo`() {
         assertEquals(15, HerdStatus(30, 45, 0).missing)
         assertEquals(0, HerdStatus(45, 45, 0).missing)
@@ -91,18 +74,17 @@ class DomainModelsTest {
     fun `los umbrales de bateria son coherentes`() {
         assertTrue(OperationRules.MIN_BATTERY_TO_RESUME < OperationRules.LOW_BATTERY_WARNING)
         assertTrue(OperationRules.LOW_BATTERY_WARNING < OperationRules.MIN_BATTERY_TO_START)
-        assertTrue(OperationRules.HEAT_THI_WARNING < OperationRules.HEAT_THI_DANGER)
     }
 
     @Test
     fun `etiquetas de enums que se muestran en pantalla`() {
-        assertEquals("Calor: riesgo para los animales", AlertType.ESTRES_TERMICO.label)
+        assertEquals("Obstáculo en el camino", AlertType.OBSTACULO.label)
         assertEquals("Crítica", AlertSeverity.CRITICA.label)
         assertEquals("Pendiente", CommandStatus.PENDIENTE.label)
         assertEquals("Volver al galpón", CommandType.VOLVER_A_BASE.label)
         assertEquals("Misión", EventCategory.MISION.label)
         assertEquals("x10", SimulationSpeed.X10.label)
         assertEquals(10, SimulationSpeed.X10.multiplier)
-        assertEquals(6, Scenario.values().size)
+        assertEquals(5, Scenario.values().size)
     }
 }

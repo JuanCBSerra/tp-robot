@@ -306,7 +306,6 @@ private fun DecisionCard(
     val resumeLabel = when (alert.type) {
         AlertType.OBSTACULO -> "Rodear y seguir"
         AlertType.TORMENTA -> "Seguir buscando"
-        AlertType.ESTRES_TERMICO -> "Seguir con cuidado"
         else -> "Reanudar"
     }
     Card(
@@ -462,7 +461,7 @@ private fun TelemetryGrid(telemetry: Telemetry, panel: TelemetryPanelUi, data: S
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 TelemetryTile(
-                    label = "Temperatura",
+                    label = "Temp. del robot",
                     value = panel.temperature.value,
                     icon = Icons.Filled.Thermostat,
                     tone = panel.temperature.tone,

@@ -41,9 +41,9 @@ class SimulationViewModelTest {
         val vm = viewModel()
         assertEquals(UiState.Success(Fixtures.settings()), vm.uiState.value)
 
-        repository.settingsFlow.value = Fixtures.settings(Scenario.CALOR)
+        repository.settingsFlow.value = Fixtures.settings(Scenario.TORMENTA)
 
-        assertEquals(UiState.Success(Fixtures.settings(Scenario.CALOR)), vm.uiState.value)
+        assertEquals(UiState.Success(Fixtures.settings(Scenario.TORMENTA)), vm.uiState.value)
     }
 
     @Test
@@ -58,8 +58,8 @@ class SimulationViewModelTest {
     @Test
     fun `cada accion avisa lo que hizo`() {
         val expected = mapOf(
-            SimulationAction.LoadScenario(Scenario.CALOR) to
-                "Escenario cargado: 6 · Ola de calor (extra). Iniciá una misión desde Control.",
+            SimulationAction.LoadScenario(Scenario.TORMENTA) to
+                "Escenario cargado: 5 · Se viene una tormenta. Iniciá una misión desde Control.",
             SimulationAction.SetLinkDown(true) to "Enlace cortado",
             SimulationAction.SetLinkDown(false) to "Enlace restablecido",
             SimulationAction.RejectNextCommand to "La próxima orden va a ser rechazada",
@@ -67,7 +67,6 @@ class SimulationViewModelTest {
             SimulationAction.DrainBattery to "Batería bajada al 22 %",
             SimulationAction.TriggerObstacle to "Obstáculo disparado",
             SimulationAction.TriggerStorm to "Tormenta disparada",
-            SimulationAction.TriggerHeat to "Ola de calor disparada",
             SimulationAction.TriggerPersonNearby to "Persona cerca disparada"
         )
         expected.forEach { (action, message) ->
@@ -87,7 +86,7 @@ class SimulationViewModelTest {
     fun `si la accion falla muestra el error`() {
         repository.applyResult = Resource.Error("no se pudo")
 
-        val effects = messageFor(SimulationAction.TriggerHeat)
+        val effects = messageFor(SimulationAction.TriggerStorm)
 
         assertEquals(listOf<SimulationEffect>(SimulationEffect.ShowSnackbar("no se pudo")), effects)
     }

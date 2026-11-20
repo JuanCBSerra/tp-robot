@@ -22,8 +22,7 @@
 | D16 | **Batería siempre visible** (barra superior) y frente al mínimo en Control | Si iniciar exige ≥ 30 %, el operador tiene que ver ese dato en todo momento y no solo en una pantalla (visibilidad del estado del sistema). |
 | D17 | **Confirmación** al cancelar la misión y al volver al galpón | Evita órdenes accidentales (riesgo 2) sin frenar las acciones urgentes: la detención sigue siendo "mantener presionado". |
 | D18 | **Aviso de misión completada** | La misión termina sin que el operador esté mirando; la app avisa con el resultado (contados / esperados). |
-| D19 | **Estrés térmico por ITH** con aviso (≥ 75) y frenado (≥ 79) | Cuida a los animales, que es el fin del servicio. Umbrales para bovinos de carne (ver sección más abajo). |
-| D21 | **La pantalla solo dibuja**: textos, tonos y umbrales de la UI los resuelve `StatusPresenter` desde el ViewModel | Es la regla de MVVM: los Composables no consultan reglas de negocio (`OperationRules`, `HeatStress`). Así esa lógica se prueba con tests JVM, sin emulador. |
+| D19 | **La pantalla solo dibuja**: textos, tonos y umbrales de la UI los resuelve `StatusPresenter` desde el ViewModel | Es la regla de MVVM: los Composables no consultan reglas de negocio (`OperationRules`, `HeatStress`). Así esa lógica se prueba con tests JVM, sin emulador. |
 | D20 | Tres umbrales de batería distintos | 30 % mínimo para iniciar, 25 % aviso de batería baja, 15 % mínimo para reanudar y alerta crítica. Se dejaron separados porque cumplen funciones distintas, pero hay que explicarlos en la demo. |
 
 ## Limitaciones (fuera del alcance)
@@ -42,23 +41,7 @@
 | # | Riesgo | Medida en la app |
 |---|---|---|
 | 1 | Persona cerca del robot | Alerta `PERSON_NEARBY`; el robot baja a 0,4 m/s (se demuestra desde el panel de simulación). |
-| 2 | Orden accidental | Confirmación para cancelar misión, volver al galpón y desconectar; detención con "mantener presionado". |
+| 2 | Orden accidental | Confirmación para cancelar misión y desconectar; detención con "mantener presionado". |
 | 3 | Pérdida de conexión | Banner rojo, datos en gris "dato viejo", órdenes bloqueadas (salvo detención), "sin respuesta" a los 5 s, regreso autónomo a los 2 min. |
-| 4 | Estrés de la hacienda | Velocidad de arreo limitada a 1 m/s; alerta `HEAT_STRESS` por ITH (aviso ≥ 75; con ≥ 79 el robot se frena y espera la decisión). |
+| 4 | Estrés de la hacienda | Velocidad de arreo limitada a 1 m/s. |
 | 5 | Privacidad | La app no guarda imágenes ni video; el historial solo tiene números y eventos. |
-
-## Estrés térmico: cómo se calcula y de dónde salen los umbrales
-
-La app no usa solo la temperatura: calcula el **ITH** (índice de temperatura y humedad, *THI* en inglés), que es lo que se usa en ganadería para medir el estrés por calor, porque la humedad empeora el efecto de la temperatura.
-
-- **Fórmula** (Texas A&M AgriLife Extension), con la temperatura en °F y la humedad relativa en %:
-  `ITH = T − (0,55 − 0,0055 · HR) · (T − 58)`.
-- **Umbrales** (bovinos de carne, INTA EEA General Villegas): ITH ≥ 75 alerta, ≥ 79 peligro, > 84 emergencia. En la app: **aviso ≥ 75** y **frenado ≥ 79** (constantes `HEAT_THI_WARNING` y `HEAT_THI_DANGER` en `OperationRules`). Para ganado lechero los umbrales son más bajos (68–72).
-- **Humedad:** el contrato 1.0 no la traía; se agregó `service.humidity_pct` (opcional). Si falta, la app asume 60 %.
-- **Clima del simulador:** el clima de base (≈ 24,5–26,5 °C y 55 % de humedad, ITH ≈ 72–74) queda por debajo de 75 para que la misión normal no dispare alertas. El escenario "6 · Ola de calor" y el botón del panel de simulación suben la temperatura hasta 35 °C y la humedad hasta 65 % (ITH > 84).
-- **Limitaciones:** el ITH no incluye radiación solar ni viento, y la tolerancia varía con la raza, el color del pelaje y la edad. Los valores son una referencia para la simulación, no una recomendación veterinaria.
-
-Fuentes:
-- Texas A&M AgriLife Extension, *Recognizing and Avoiding Heat Stress in Cattle*: https://animalscience.tamu.edu/?p=23005
-- INTA EEA General Villegas (umbrales para bovinos de carne, citados por Bichos de Campo): https://bichosdecampo.com/?p=259270
-- INTA Clima y Agua / EEA Rafaela, boletines de ITH: https://sepa.inta.gob.ar/productos/indices_de_vegetacion/informes/informeith/ith07.20240117.pdf

@@ -71,7 +71,6 @@ class SimulationViewModel @Inject constructor(
         SimulationAction.DrainBattery -> "Batería bajada al 22 %"
         SimulationAction.TriggerObstacle -> "Obstáculo disparado"
         SimulationAction.TriggerStorm -> "Tormenta disparada"
-        SimulationAction.TriggerHeat -> "Ola de calor disparada"
         SimulationAction.TriggerPersonNearby -> "Persona cerca disparada"
     }
 }

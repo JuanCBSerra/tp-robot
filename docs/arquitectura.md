@@ -15,7 +15,7 @@ flowchart TB
     subgraph domain["domain (Kotlin puro)"]
         UC["Casos de uso<br/>StartMission · Pause · Resume · Cancel<br/>ReturnToBase · OperationalStop · AcknowledgeAlert<br/>GetCommandAvailability · Observe*"]
         REPO_I["interfaces<br/>RobotRepository · SimulationRepository"]
-        MODEL["modelos<br/>Telemetry · Alert · CommandRecord · MissionRecord · FieldMap<br/>OperationRules (umbrales) · HeatStress (ITH)"]
+        MODEL["modelos<br/>Telemetry · Alert · CommandRecord · MissionRecord · FieldMap<br/>OperationRules (umbrales)"]
         UC --> REPO_I
     end
 
@@ -47,7 +47,7 @@ flowchart TB
 | La UI observa estado y manda eventos, **sin tocar el simulador** | Las pantallas solo conocen ViewModels; los ViewModels solo casos de uso. Ni siquiera el panel de simulación ve `RobotSimulator`: pasa por `SimulationRepository`. |
 | Un **Repository** desacopla telemetría, comandos y eventos de la implementación simulada | `RobotRepository` (dominio) ← `RobotRepositoryImpl` (data) → `RobotDataSource` ← `RobotSimulator`. Cambiar a un robot real = otra implementación de `RobotDataSource` + 1 línea en `DataSourceModule`. |
 | Separar modelos, Repository, ViewModel y Compose | Paquetes `domain/model`, `domain/repository`, `data/repository`, `presentation/<feature>/*ViewModel.kt` y `*Screen.kt`. |
-| La UI solo dibuja | Los textos, colores y umbrales que muestra (batería, ITH) los calcula `StatusPresenter` en el ViewModel; las pantallas Compose no consultan reglas de negocio. |
+| La UI solo dibuja | Los textos, colores y umbrales que muestra (batería, temperatura) los calcula `StatusPresenter` en el ViewModel; las pantallas Compose no consultan reglas de negocio. |
 | StateFlow | Cada ViewModel expone `StateFlow<UiState<T>>` (backing property privada) y `SharedFlow` para snackbars/navegación. |
 | Persistencia local | Room: tabla `events` (todo lo que pasa) y `missions` (resumen al terminar cada misión). |
 | Funciona sin robot, servidor ni internet | El manifest no pide permiso de INTERNET. |
@@ -75,33 +75,6 @@ sequenceDiagram
     R->>R: PENDIENTE → CONFIRMADA, evento a Room
     R-->>VM: Flow<List<CommandRecord>> emite
     VM-->>S: StateFlow emite → chip "Confirmada"
-```
-
-## Flujo de una alerta de estrés térmico
-
-El simulador calcula el ITH con la temperatura y la humedad; la app solo recibe el JSON y lo muestra.
-Los umbrales viven en `OperationRules` (dominio), no en la pantalla.
-
-```mermaid
-sequenceDiagram
-    actor Op as Operador
-    participant UI as SupervisionScreen
-    participant VM as ViewModels
-    participant R as RobotRepositoryImpl
-    participant Sim as RobotSimulator
-
-    Sim->>Sim: step(): sube temperatura y humedad (clima del escenario)
-    Sim-->>R: telemetry {temperature_c, humidity_pct}
-    R-->>VM: Telemetry (heatIndex = ITH)
-    VM-->>UI: celda Temperatura "ITH 76 · estrés térmico" (naranja)
-    Sim-->>R: alert HEAT_STRESS WARNING (ITH ≥ 75)
-    R-->>UI: alerta "Calor: riesgo para los animales"
-    Sim->>Sim: ITH ≥ 79 → pausa la misión (ESPERANDO_DECISION)
-    Sim-->>R: alert HEAT_STRESS CRITICAL, requires_decision
-    R-->>UI: tarjeta "El robot espera tu decisión"
-    Op->>UI: reconoce la alerta y elige "Seguir con cuidado" o "Volver al galpón"
-    UI->>VM: resume() o returnToBase() (esta última pide confirmación)
-    VM->>R: sendCommand(...)
 ```
 
 ## Estructura de paquetes

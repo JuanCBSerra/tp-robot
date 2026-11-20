@@ -48,7 +48,6 @@ class SimulationRepositoryImpl @Inject constructor(
                 SimulationAction.DrainBattery -> simulator.drainBattery()
                 SimulationAction.TriggerObstacle -> simulator.triggerObstacle()
                 SimulationAction.TriggerStorm -> simulator.triggerStorm()
-                SimulationAction.TriggerHeat -> simulator.triggerHeat()
                 SimulationAction.TriggerPersonNearby -> simulator.triggerPersonNearby()
             }
         } catch (e: Exception) {

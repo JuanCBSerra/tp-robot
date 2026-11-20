@@ -92,29 +92,27 @@ class StatusPresenterTest {
         assertEquals(Tone.ERROR, ui.tone)
     }
 
-    // --- Temperatura / estrés térmico ---
+    // --- Temperatura interna del robot ---
 
     @Test
-    fun `temperatura sin estres muestra humedad`() {
-        val tile = StatusPresenter.temperatureTile(Fixtures.telemetry(temperature = 25.0, humidity = 55))
-        assertEquals("%.1f °C".format(25.0), tile.value)
-        assertEquals("ITH 72 · hum. 55 %", tile.caption)
+    fun `temperatura normal no avisa`() {
+        val tile = StatusPresenter.temperatureTile(Fixtures.telemetry(temperature = 33.9))
+        assertEquals("%.1f °C".format(33.9), tile.value)
+        assertNull(tile.caption)
         assertEquals(Tone.OK, tile.tone)
     }
 
     @Test
-    fun `temperatura en alerta de estres termico`() {
-        // 28 °C y 60 % -> ITH ~77
-        val tile = StatusPresenter.temperatureTile(Fixtures.telemetry(temperature = 28.0, humidity = 60))
-        assertEquals("ITH 77 · estrés térmico", tile.caption)
+    fun `temperatura alta avisa sobrecalentamiento`() {
+        val tile = StatusPresenter.temperatureTile(Fixtures.telemetry(temperature = 34.0))
+        assertEquals("sobrecalentamiento", tile.caption)
         assertEquals(Tone.ADVERTENCIA, tile.tone)
     }
 
     @Test
-    fun `temperatura en peligro por estres termico`() {
-        // 33 °C y 62 % -> ITH ~84
-        val tile = StatusPresenter.temperatureTile(Fixtures.telemetry(temperature = 33.0, humidity = 62))
-        assertEquals("ITH 84 · peligro", tile.caption)
+    fun `temperatura muy alta es peligro`() {
+        val tile = StatusPresenter.temperatureTile(Fixtures.telemetry(temperature = 38.0))
+        assertEquals("sobrecalentamiento", tile.caption)
         assertEquals(Tone.ERROR, tile.tone)
     }
 
@@ -200,7 +198,7 @@ class StatusPresenterTest {
 
     @Test
     fun `panel incluye la tarjeta de temperatura`() {
-        val telemetry = Fixtures.telemetry(temperature = 33.0, humidity = 62)
+        val telemetry = Fixtures.telemetry(temperature = 36.0)
         val panel = StatusPresenter.telemetryPanel(Fixtures.status(telemetry), telemetry)
         assertEquals(StatusPresenter.temperatureTile(telemetry), panel.temperature)
     }
